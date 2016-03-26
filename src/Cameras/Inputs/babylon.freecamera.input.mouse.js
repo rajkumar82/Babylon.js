@@ -12,7 +12,7 @@ var BABYLON;
         }
         FreeCameraMouseInput.prototype.attachControl = function (element, noPreventDefault) {
             var _this = this;
-            if (this._onMouseDown === undefined) {
+            if (!this._onMouseDown) {
                 var camera = this.camera;
                 var engine = this.camera.getEngine();
                 this._onMouseDown = function (evt) {
@@ -93,4 +93,3 @@ var BABYLON;
     BABYLON.FreeCameraMouseInput = FreeCameraMouseInput;
     BABYLON.CameraInputTypes["FreeCameraMouseInput"] = FreeCameraMouseInput;
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.freecamera.input.mouse.js.map

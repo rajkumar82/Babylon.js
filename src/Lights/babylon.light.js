@@ -111,6 +111,19 @@ var BABYLON;
             if (this.parent) {
                 serializationObject.parentId = this.parent.id;
             }
+            // Inclusion / exclusions
+            if (this.excludedMeshes.length > 0) {
+                serializationObject.excludedMeshesIds = [];
+                this.excludedMeshes.forEach(function (mesh) {
+                    serializationObject.excludedMeshesIds.push(mesh.id);
+                });
+            }
+            if (this.includedOnlyMeshes.length > 0) {
+                serializationObject.includedOnlyMeshesIds = [];
+                this.includedOnlyMeshes.forEach(function (mesh) {
+                    serializationObject.includedOnlyMeshesIds.push(mesh.id);
+                });
+            }
             // Animations  
             BABYLON.Animation.AppendSerializedAnimations(this, serializationObject);
             serializationObject.ranges = this.serializeAnimationRanges();
@@ -171,9 +184,11 @@ var BABYLON;
         ], Light.prototype, "includeOnlyWithLayerMask", void 0);
         __decorate([
             BABYLON.serialize()
+        ], Light.prototype, "excludeWithLayerMask", void 0);
+        __decorate([
+            BABYLON.serialize()
         ], Light.prototype, "radius", void 0);
         return Light;
     })(BABYLON.Node);
     BABYLON.Light = Light;
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.light.js.map

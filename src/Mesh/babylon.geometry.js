@@ -27,10 +27,32 @@ var BABYLON;
             }
             // applyToMesh
             if (mesh) {
+                if (mesh instanceof BABYLON.LinesMesh) {
+                    this.boundingBias = new BABYLON.Vector2(0, mesh.intersectionThreshold);
+                    this.updateExtend();
+                }
                 this.applyToMesh(mesh);
                 mesh.computeWorldMatrix(true);
             }
         }
+        Object.defineProperty(Geometry.prototype, "boundingBias", {
+            /**
+             *  The Bias Vector to apply on the bounding elements (box/sphere), the max extend is computed as v += v * bias.x + bias.y, the min is computed as v -= v * bias.x + bias.y
+             * @returns The Bias Vector
+             */
+            get: function () {
+                return this._boundingBias;
+            },
+            set: function (value) {
+                if (this._boundingBias && this._boundingBias.equals(value)) {
+                    return;
+                }
+                this._boundingBias = value.clone();
+                this.updateExtend();
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Geometry.prototype, "extend", {
             get: function () {
                 return this._extend;
@@ -59,7 +81,7 @@ var BABYLON;
             if (kind === BABYLON.VertexBuffer.PositionKind) {
                 stride = this._vertexBuffers[kind].getStrideSize();
                 this._totalVertices = data.length / stride;
-                this._extend = BABYLON.Tools.ExtractMinAndMax(data, 0, this._totalVertices);
+                this.updateExtend(data);
                 var meshes = this._meshes;
                 var numOfMeshes = meshes.length;
                 for (var index = 0; index < numOfMeshes; index++) {
@@ -90,7 +112,7 @@ var BABYLON;
                 var stride = vertexBuffer.getStrideSize();
                 this._totalVertices = data.length / stride;
                 if (updateExtends) {
-                    this._extend = BABYLON.Tools.ExtractMinAndMax(data, 0, this._totalVertices);
+                    this.updateExtend(data);
                 }
                 var meshes = this._meshes;
                 var numOfMeshes = meshes.length;
@@ -253,6 +275,13 @@ var BABYLON;
                 mesh._boundingInfo = this._boundingInfo;
             }
         };
+        Geometry.prototype.updateExtend = function (data) {
+            if (data === void 0) { data = null; }
+            if (!data) {
+                data = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind].getData();
+            }
+            this._extend = BABYLON.Tools.ExtractMinAndMax(data, 0, this._totalVertices, this.boundingBias);
+        };
         Geometry.prototype._applyToMesh = function (mesh) {
             var numOfMeshes = this._meshes.length;
             // vertexBuffers
@@ -264,7 +293,7 @@ var BABYLON;
                 if (kind === BABYLON.VertexBuffer.PositionKind) {
                     mesh._resetPointsArrayCache();
                     if (!this._extend) {
-                        this._extend = BABYLON.Tools.ExtractMinAndMax(this._vertexBuffers[kind].getData(), 0, this._totalVertices);
+                        this.updateExtend(this._vertexBuffers[kind].getData());
                     }
                     mesh._boundingInfo = new BABYLON.BoundingInfo(this._extend.minimum, this._extend.maximum);
                     mesh._createGlobalSubMesh();
@@ -1015,4 +1044,3 @@ var BABYLON;
         })(Primitives = Geometry.Primitives || (Geometry.Primitives = {}));
     })(Geometry = BABYLON.Geometry || (BABYLON.Geometry = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.geometry.js.map

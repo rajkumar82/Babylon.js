@@ -9,8 +9,10 @@
     - Animations blending. See [demo here](http://www.babylonjs-playground.com/#2BLI9T#3). More [info here](NEED DOC!) ([deltakosh](https://github.com/deltakosh))
     - New debuger tool: SkeletonViewer. See [demo here](Demo available here: http://www.babylonjs-playground.com/#1BZJVJ#8) (Adam & [deltakosh](https://github.com/deltakosh))
     - Added Camera Inputs Manager to manage camera inputs (mouse, touch, keyboard, gamepad, ...) in a composable way, without relying on class inheritance [gleborgne](https://github.com/gleborgne)
-    - Added skeleton.getBoneIndexByName(boneName: string) [dad72](https://github.com/dad72)
+    - Introduced new observable system to handle events ([nockawa](https://github.com/nockawa), [deltakosh](https://github.com/deltakosh))
+    - Added a new VR camera : VRDeviceOrientationArcRotateCamera [temechon](https://github.com/Temechon)
   - **Updates**
+    - Added skeleton.getBoneIndexByName(boneName: string) [dad72](https://github.com/dad72)
     - Added node._children to track children hierarchy ([deltakosh](https://github.com/deltakosh))
     - Added Camera.ForceAttachControlToAlwaysPreventDefault to help embedding Babylon.js in iFrames ([deltakosh](https://github.com/deltakosh))
     - Support for Layer.alphaTest ([deltakosh](https://github.com/deltakosh))
@@ -27,3 +29,4 @@
     - Fixed bug with ArcRotateCamera.setTarget ([deltakosh](https://github.com/deltakosh))
   - **Breaking changes**
     - `VertexData.CreateLines()` removed as `MeshBuilder.CreateLines()` now calls `MeshBuilder.CreateLineSystem()`
+    - `scene.onNewXXXAdded` and `scene.onXXXRemoved' callbacks were removed and replaced by `scene.onNewXXXAddedObservable` and `scene.onXXXRemovedObservable`

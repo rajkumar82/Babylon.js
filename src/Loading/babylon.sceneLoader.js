@@ -105,24 +105,41 @@ var BABYLON;
                     var particleSystems = [];
                     var skeletons = [];
                     try {
-                        if (!plugin.importMesh(meshesNames, scene, data, rootUrl, meshes, particleSystems, skeletons)) {
-                            if (onerror) {
-                                onerror(scene, 'Unable to import meshes from ' + rootUrl + sceneFilename);
+                        if (plugin.importMesh) {
+                            var syncedPlugin = plugin;
+                            if (!syncedPlugin.importMesh(meshesNames, scene, data, rootUrl, meshes, particleSystems, skeletons)) {
+                                if (onerror) {
+                                    onerror(scene, 'Unable to import meshes from ' + rootUrl + sceneFilename);
+                                }
+                                scene._removePendingData(loadingToken);
+                                return;
                             }
-                            scene._removePendingData(loadingToken);
-                            return;
+                            if (onsuccess) {
+                                scene.importedMeshesFiles.push(rootUrl + sceneFilename);
+                                onsuccess(meshes, particleSystems, skeletons);
+                                scene._removePendingData(loadingToken);
+                            }
+                        }
+                        else {
+                            var asyncedPlugin = plugin;
+                            asyncedPlugin.importMeshAsync(meshesNames, scene, data, rootUrl, function (meshes, particleSystems, skeletons) {
+                                if (onsuccess) {
+                                    scene.importedMeshesFiles.push(rootUrl + sceneFilename);
+                                    onsuccess(meshes, particleSystems, skeletons);
+                                    scene._removePendingData(loadingToken);
+                                }
+                            }, function () {
+                                if (onerror) {
+                                    onerror(scene, 'Unable to import meshes from ' + rootUrl + sceneFilename);
+                                }
+                                scene._removePendingData(loadingToken);
+                            });
                         }
                     }
                     catch (e) {
                         if (onerror) {
                             onerror(scene, 'Unable to import meshes from ' + rootUrl + sceneFilename + ' (Exception: ' + e + ')');
                         }
-                        scene._removePendingData(loadingToken);
-                        return;
-                    }
-                    if (onsuccess) {
-                        scene.importedMeshesFiles.push(rootUrl + sceneFilename);
-                        onsuccess(meshes, particleSystems, skeletons);
                         scene._removePendingData(loadingToken);
                     }
                 };
@@ -151,10 +168,6 @@ var BABYLON;
         * @param engine is the instance of BABYLON.Engine to use to create the scene
         */
         SceneLoader.Load = function (rootUrl, sceneFilename, engine, onsuccess, progressCallBack, onerror) {
-            if (!SceneLoader._warned) {
-                BABYLON.Tools.Warn("SceneLoader.Load deprecated since 2.4.  Use SceneLoader.Append.");
-                SceneLoader._warned = true;
-            }
             SceneLoader.Append(rootUrl, sceneFilename, new BABYLON.Scene(engine), onsuccess, progressCallBack, onerror);
         };
         /**
@@ -177,18 +190,35 @@ var BABYLON;
             }
             var loadSceneFromData = function (data) {
                 scene.database = database;
-                if (!plugin.load(scene, data, rootUrl)) {
-                    if (onerror) {
-                        onerror(scene);
+                if (plugin.load) {
+                    var syncedPlugin = plugin;
+                    if (!syncedPlugin.load(scene, data, rootUrl)) {
+                        if (onerror) {
+                            onerror(scene);
+                        }
+                        scene._removePendingData(loadingToken);
+                        scene.getEngine().hideLoadingUI();
+                        return;
+                    }
+                    if (onsuccess) {
+                        onsuccess(scene);
                     }
                     scene._removePendingData(loadingToken);
-                    scene.getEngine().hideLoadingUI();
-                    return;
                 }
-                if (onsuccess) {
-                    onsuccess(scene);
+                else {
+                    var asyncedPlugin = plugin;
+                    asyncedPlugin.loadAsync(scene, data, rootUrl, function () {
+                        if (onsuccess) {
+                            onsuccess(scene);
+                        }
+                    }, function () {
+                        if (onerror) {
+                            onerror(scene);
+                        }
+                        scene._removePendingData(loadingToken);
+                        scene.getEngine().hideLoadingUI();
+                    });
                 }
-                scene._removePendingData(loadingToken);
                 if (SceneLoader.ShowLoadingScreen) {
                     scene.executeWhenReady(function () {
                         scene.getEngine().hideLoadingUI();
@@ -227,4 +257,3 @@ var BABYLON;
     BABYLON.SceneLoader = SceneLoader;
     ;
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.sceneLoader.js.map

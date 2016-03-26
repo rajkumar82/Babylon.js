@@ -97,7 +97,7 @@ var BABYLON;
             var inputs = {};
             for (var cam in this.attached) {
                 var input = this.attached[cam];
-                var res = BABYLON.SerializationHelper.Serialize(input, serializedCamera);
+                var res = BABYLON.SerializationHelper.Serialize(input);
                 inputs[input.getTypeName()] = res;
             }
             serializedCamera.inputsmgr = inputs;
@@ -121,6 +121,7 @@ var BABYLON;
                     var construct = BABYLON.CameraInputTypes[this.attached[n].getTypeName()];
                     if (construct) {
                         var input = BABYLON.SerializationHelper.Parse(function () { return new construct(); }, parsedCamera, null);
+                        this.remove(this.attached[n]);
                         this.add(input);
                     }
                 }
@@ -130,4 +131,3 @@ var BABYLON;
     })();
     BABYLON.CameraInputsManager = CameraInputsManager;
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.cameraInputsManager.js.map

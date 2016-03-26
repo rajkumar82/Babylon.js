@@ -11,6 +11,22 @@ var BABYLON;
         function AbstractMesh(name, scene) {
             var _this = this;
             _super.call(this, name, scene);
+            // Events
+            /**
+            * An event triggered when this mesh collides with another one
+            * @type {BABYLON.Observable}
+            */
+            this.onCollideObservable = new BABYLON.Observable();
+            /**
+            * An event triggered when the collision's position changes
+            * @type {BABYLON.Observable}
+            */
+            this.onCollisionPositionChangeObservable = new BABYLON.Observable();
+            /**
+            * An event triggered after the world matrix is updated
+            * @type {BABYLON.Observable}
+            */
+            this.onAfterWorldMatrixUpdateObservable = new BABYLON.Observable();
             // Properties
             this.definedFacingForward = true; // orientation for POV movement & rotation
             this.position = new BABYLON.Vector3(0, 0, 0);
@@ -68,7 +84,6 @@ var BABYLON;
             this._isDisposed = false;
             this._renderId = 0;
             this._intersectionsInProgress = new Array();
-            this._onAfterWorldMatrixUpdate = new Array();
             this._isWorldMatrixFrozen = false;
             this._unIndexed = false;
             this._onCollisionPositionChange = function (collisionId, newPosition, collidedMesh) {
@@ -80,12 +95,10 @@ var BABYLON;
                 if (_this._diffPositionForCollisions.length() > BABYLON.Engine.CollisionsEpsilon) {
                     _this.position.addInPlace(_this._diffPositionForCollisions);
                 }
-                if (_this.onCollide && collidedMesh) {
-                    _this.onCollide(collidedMesh);
+                if (collidedMesh) {
+                    _this.onCollideObservable.notifyObservers(collidedMesh);
                 }
-                if (_this.onCollisionPositionChange) {
-                    _this.onCollisionPositionChange(_this.position);
-                }
+                _this.onCollisionPositionChangeObservable.notifyObservers(_this.position);
             };
             scene.addMesh(this);
         }
@@ -120,6 +133,26 @@ var BABYLON;
         Object.defineProperty(AbstractMesh, "BILLBOARDMODE_ALL", {
             get: function () {
                 return AbstractMesh._BILLBOARDMODE_ALL;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbstractMesh.prototype, "onCollide", {
+            set: function (callback) {
+                if (this._onCollideObserver) {
+                    this.onCollideObservable.remove(this._onCollideObserver);
+                }
+                this._onCollideObserver = this.onCollideObservable.add(callback);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbstractMesh.prototype, "onCollisionPositionChange", {
+            set: function (callback) {
+                if (this._onCollisionPositionChangeObserver) {
+                    this.onCollisionPositionChangeObservable.remove(this._onCollisionPositionChangeObserver);
+                }
+                this._onCollisionPositionChangeObserver = this.onCollisionPositionChangeObservable.add(callback);
             },
             enumerable: true,
             configurable: true
@@ -576,9 +609,7 @@ var BABYLON;
             // Absolute position
             this._absolutePosition.copyFromFloats(this._worldMatrix.m[12], this._worldMatrix.m[13], this._worldMatrix.m[14]);
             // Callbacks
-            for (var callbackIndex = 0; callbackIndex < this._onAfterWorldMatrixUpdate.length; callbackIndex++) {
-                this._onAfterWorldMatrixUpdate[callbackIndex](this);
-            }
+            this.onAfterWorldMatrixUpdateObservable.notifyObservers(this);
             if (!this._poseMatrix) {
                 this._poseMatrix = BABYLON.Matrix.Invert(this._worldMatrix);
             }
@@ -589,13 +620,10 @@ var BABYLON;
         * @param func: callback function to add
         */
         AbstractMesh.prototype.registerAfterWorldMatrixUpdate = function (func) {
-            this._onAfterWorldMatrixUpdate.push(func);
+            this.onAfterWorldMatrixUpdateObservable.add(func);
         };
         AbstractMesh.prototype.unregisterAfterWorldMatrixUpdate = function (func) {
-            var index = this._onAfterWorldMatrixUpdate.indexOf(func);
-            if (index > -1) {
-                this._onAfterWorldMatrixUpdate.splice(index, 1);
-            }
+            this.onAfterWorldMatrixUpdateObservable.removeCallback(func);
         };
         AbstractMesh.prototype.setPositionWithLocalVector = function (vector3) {
             this.computeWorldMatrix();
@@ -676,7 +704,7 @@ var BABYLON;
                 options = impostor;
                 impostor = impostor.impostor;
             }
-            this.physicsImpostor = new BABYLON.PhysicsImpostor(this, impostor, options);
+            this.physicsImpostor = new BABYLON.PhysicsImpostor(this, impostor, options, this.getScene());
             return this.physicsImpostor.physicsBody;
         };
         AbstractMesh.prototype.getPhysicsImpostor = function () {
@@ -909,6 +937,7 @@ var BABYLON;
             }
         };
         AbstractMesh.prototype.dispose = function (doNotRecurse) {
+            var _this = this;
             var index;
             // Action manager
             if (this.actionManager) {
@@ -921,7 +950,7 @@ var BABYLON;
             this.getScene().stopAnimation(this);
             // Physics
             if (this.physicsImpostor) {
-                this.physicsImpostor.dispose(!doNotRecurse);
+                this.physicsImpostor.dispose();
             }
             // Intersections in progress
             for (index = 0; index < this._intersectionsInProgress.length; index++) {
@@ -930,6 +959,18 @@ var BABYLON;
                 other._intersectionsInProgress.splice(pos, 1);
             }
             this._intersectionsInProgress = [];
+            // Lights
+            var lights = this.getScene().lights;
+            lights.forEach(function (light) {
+                var meshIndex = light.includedOnlyMeshes.indexOf(_this);
+                if (meshIndex !== -1) {
+                    light.includedOnlyMeshes.splice(meshIndex, 1);
+                }
+                meshIndex = light.excludedMeshes.indexOf(_this);
+                if (meshIndex !== -1) {
+                    light.excludedMeshes.splice(meshIndex, 1);
+                }
+            });
             // Edges
             if (this._edgesRenderer) {
                 this._edgesRenderer.dispose();
@@ -955,14 +996,14 @@ var BABYLON;
             }
             else {
                 var childMeshes = this.getChildMeshes(true);
-                for (index = 0; childMeshes.length; index++) {
+                for (index = 0; index < childMeshes.length; index++) {
                     var child = childMeshes[index];
                     child.parent = null;
                     child.computeWorldMatrix(true);
                 }
             }
             _super.prototype.dispose.call(this);
-            this._onAfterWorldMatrixUpdate = [];
+            this.onAfterWorldMatrixUpdateObservable.clear();
             this._isDisposed = true;
             // Callback
             if (this.onDispose) {
@@ -979,4 +1020,3 @@ var BABYLON;
     })(BABYLON.Node);
     BABYLON.AbstractMesh = AbstractMesh;
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.abstractMesh.js.map
