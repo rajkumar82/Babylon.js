@@ -22,3 +22,4 @@ var BABYLON;
     })(BABYLON.FreeCamera);
     BABYLON.VRDeviceOrientationFreeCamera = VRDeviceOrientationFreeCamera;
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.vrDeviceOrientationCamera.js.map

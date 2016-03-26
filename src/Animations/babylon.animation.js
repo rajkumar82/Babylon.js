@@ -700,3 +700,4 @@ var BABYLON;
     })();
     BABYLON.Animation = Animation;
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.animation.js.map

@@ -169,3 +169,4 @@ var BABYLON;
     })();
     BABYLON.Ray = Ray;
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.ray.js.map

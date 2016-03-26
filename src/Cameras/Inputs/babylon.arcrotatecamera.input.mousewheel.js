@@ -52,3 +52,4 @@ var BABYLON;
     BABYLON.ArcRotateCameraMouseWheelInput = ArcRotateCameraMouseWheelInput;
     BABYLON.CameraInputTypes["ArcRotateCameraMouseWheelInput"] = ArcRotateCameraMouseWheelInput;
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.arcrotatecamera.input.mousewheel.js.map

@@ -131,3 +131,4 @@ var BABYLON;
     BABYLON.FreeCameraTouchInput = FreeCameraTouchInput;
     BABYLON.CameraInputTypes["FreeCameraTouchInput"] = FreeCameraTouchInput;
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.freecamera.input.touch.js.map

@@ -30,3 +30,4 @@ var BABYLON;
     })(BABYLON.CameraInputsManager);
     BABYLON.ArcRotateCameraInputsManager = ArcRotateCameraInputsManager;
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.arcRotateCameraInputsManager.js.map
