@@ -161,6 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="external references\poly2tri.d.ts" />
+    <TypeScriptCompile Include="src\Cameras\Inputs\babylon.arcrotatecamera.input.vrdeviceorientation.ts" />
+    <TypeScriptCompile Include="src\Tools\babylon.observable.ts" />
     <TypeScriptCompile Include="typescript\sandbox.ts" />
     <TypeScriptCompile Include="src\Actions\babylon.action.ts" />
     <TypeScriptCompile Include="src\Actions\babylon.actionManager.ts" />

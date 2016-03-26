@@ -43,12 +43,15 @@
 
 
             var origin = BABYLON.Vector3.Zero();
-            var xaxis = BABYLON.Mesh.CreateLines("axisX", [origin, new BABYLON.Vector3(10, 0, 0)], this.scene);
-            xaxis.color = new BABYLON.Color3(1, 0, 0);
+            var xaxis = BABYLON.Mesh.CreateLines("axisX", [origin, new BABYLON.Vector3(200, 0, 0)], this.scene);
+            xaxis.color = BABYLON.Color3.Blue();
             xaxis.isPickable = true;
 
             this.scene.onPointerDown = function (evt, pickResult) {
                 if (pickResult.hit) {
+                    xaxis.color = BABYLON.Color3.Red();
+                }
+                else {
                     xaxis.color = BABYLON.Color3.Blue();
                 }
             }
