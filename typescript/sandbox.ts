@@ -43,9 +43,14 @@
 
 
             var origin = BABYLON.Vector3.Zero();
-            var xaxis = BABYLON.Mesh.CreateLines("axisX", [origin, new BABYLON.Vector3(200, 0, 0)], this.scene);
+            var xaxis = BABYLON.Mesh.CreateLines("axisX", [new BABYLON.Vector3(230, 100, 100), new BABYLON.Vector3(230, -100, 100)], this.scene);
             xaxis.color = BABYLON.Color3.Blue();
             xaxis.isPickable = true;
+            xaxis.intersectionThreshold = 100;
+            xaxis.geometry.boundingBias = new BABYLON.Vector2(0, 100);
+
+            
+            
 
             this.scene.onPointerDown = function (evt, pickResult) {
                 if (pickResult.hit) {
